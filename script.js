@@ -1,25 +1,114 @@
-/*pseudo code: 
-Wait for the DOM to load
-Get all the game cards and store their count and score
-Set up event listeners for all game cards and the start button
-Define a function to handle clicks on game cards
-If a game card is clicked:
-a. If it is not the front of the card, return
-b. If neither card 1 nor card2 have been set, set card1 to the clicked card and add 'flipped'
-class to it
-c. If card1 has been set, but not card2, set card2, to the clicked card, add "flipped" class to it, and increment the score.
-d. If both card1 and card2 have been set, check if their images match. If they do, remove the 
-event listeners and set card1 and card2 to null. If they don't flip them back over after a delay
-e. If all cards have been flipped, end the game
-Define a function to start the game:
-Set the score to 0 and add playing  class to the start element
-Generate pairs of indices for the card images and shuffle them
-Set the image sources for each card based on the shuffled pairs
-Define a function to shuffle an array
-Define a function to set the score
-Define a function to end the game:
-Display the final score and check if it is a new best score
-If it is, update the local storage with the new best score and display a message
-Add the "game-over" class to the end element
- */
+const gameContainer = document.getElementById('game');
+let timer = document.querySelector('#timer');
+let start = document.querySelector('#start');
+let reset = document.querySelector('#reset');
+let flipped = document.querySelector('.flipped');
 
+let cardFlipCounter= 0;
+let clockCounter = 0;
+let flipCounter = 0;
+let card1 = null;
+let card2 = null;
+
+const COLORS = [
+    "red",
+    "blue",
+     "green",
+    "orange",
+    "purple",
+    "red",
+    "blue",
+    "green",
+    "orange",
+    "purple"
+];
+
+function shuffle(arr) {
+    let counter = arr.length;
+
+    while (counter > 0) {
+        let index = Math.floor(Math.random() * counter);
+
+        counter--;
+
+        let temp = arr[counter];
+        arr[counter] = arr[index];
+        arr[index] = temp;
+    }
+    return arr;
+}
+
+let shuffledColors = shuffle(COLORS);
+
+function createDivsForColors(colorArr) {
+    for(let color of colorArr) {
+        const newDiv = document.createElement('div');
+
+        newDiv.classList.add(color);
+
+        newDiv.addEventListener('click', handleCardClick);
+
+        gameContainer.append(newDiv);
+    }
+}
+
+// TODO: Implement this function!
+
+document.getElementById('game').style.pointerEvents = 'none';
+start.addEventListener('click', function() {
+    document.getElementById('game').style.pointerEvents = 'auto';
+    setInterval(function() {
+        timer.innerHTML = 'Timer : ' + clockCounter++;
+    }, 1000);
+});
+
+function handleCardClick(e) {
+    flipCounter++;
+    if(flipCounter === 1) {
+        card1 = e.target;
+        card1.style.backgroundColor = e.target.classList[0];
+        card1.classList.add('flipped');
+        card1.removeEventListener('click', handleCardClick);
+    }
+    else {
+        document.getElementById('game').style.pointerEvents = 'none';
+        card2 = e.target;
+        card2.style.backgroundColor = e.target.classList[0];
+        card2.classList.add('flipped');
+        card2.removeEventListener('click', handleCardClick);
+
+        if(card1.className === card2.className){
+            cardFlipCounter += 2;
+            card1.classList.add('match');
+            console.log(card1, card2);
+            card1.addEventListener('click', handleCardClick);
+            card2.addEventListener('click', handleCardClick);
+            card1 = null;
+            card2 = null;
+            flipCounter = 0;
+            document.getElementById('game').style.pointerEvents = 'auto';
+        }
+        else {
+            setTimeout(function() {
+                card1.style.backgroundColor = '';
+                card2.style.backgroundColor = '';
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1 = null;
+                card2 = null;
+                document.getElementById('game').style.pointerEvents = 'auto';
+                flipCounter = 0;
+            }, 500);
+            card1.addEventListener('click', handleCardClick);
+            card2.addEventListener('click', handleCardClick);
+        }
+    }
+    if(cardFlipCounter === 10) {
+        setTimeout(function() {
+            alert('You Finished The Game. Congrats!');
+            timer = 0;
+        }, 200);
+    }
+}
+
+createDivsForColors(shuffledColors);
